@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown to HTML Converter</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Moul&family=Moulpali&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/5968/5968517.png">
+    <style>
+        :root {
+            --primary-color: #4F46E5;
+            --secondary-color: #10B981;
+            --dark-color: #1E293B;
+            --light-color: #F8FAFC;
+            --accent-color: #F59E0B;
+            --transition: all 0.3s ease-in-out;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Kantumruy Pro', sans-serif;
+            background-color: #f9fafb;
+            color: var(--dark-color);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3 {
+            font-family: 'Moul', serif;
+            font-weight: normal;
+        }
+
+        .modal {
+            font-family: 'Moulpali', serif;
+        }
+
+        /* Language Toggle */
+        .language-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            background: white;
+            padding: 8px 12px;
+            border-radius: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .language-toggle span {
+            margin: 0 8px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: var(--transition);
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: var(--transition);
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--primary-color);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(10px);
+        }
+
+        /* Back to Top Button */
+        .back-to-top {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 1000;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .back-to-top.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .back-to-top:hover {
+            background-color: #4338CA;
+            transform: translateY(-3px);
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--primary-color), #7C3AED);
+            color: white;
+            padding: 2rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 1.5rem;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+            100% { transform: translateY(0px); }
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        .tagline {
+            font-size: 1.2rem;
+            max-width: 700px;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+            animation: fadeInUp 1s ease-out 0.3s forwards;
+            opacity: 0;
+        }
+
+        .cta-button {
+            display: block;
+            background-color: var(--accent-color);
+            color: white;
+            padding: 0.8rem 2rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: var(--transition);
+            animation: fadeInUp 1s ease-out 0.6s forwards;
+            opacity: 0;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+            width: fit-content;
+            margin: auto;
+        }
+
+        .cta-button:hover {
+            background-color: #E67E22;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+        }
+
+        .header-wave {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100px;
+            background: url('https://assets.website-files.com/5e4b1ad5ea2f4614ece99672/5e4b1ad5ea2f46e9cce996a1_wave.svg') center bottom no-repeat;
+            background-size: cover;
+            z-index: 1;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Features Section */
+        .features {
+            padding: 5rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            color: var(--primary-color);
+            position: relative;
+        }
+
+        .section-title:after {
+            content: '';
+            display: block;
+            width: 80px;
+            height: 4px;
+            background: var(--accent-color);
+            margin: 0.5rem auto;
+            border-radius: 2px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background: white;
+            border-radius: 10px;
+            padding: 2rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: var(--transition);
+            text-align: center;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .feature-card.animated {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-title {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--dark-color);
+        }
+
+        /* Demo Section */
+        .demo {
+            background: linear-gradient(135deg, #F0FDF4, #ECFDF5);
+            padding: 5rem 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .demo-content {
+            flex: 1;
+            min-width: 300px;
+            padding: 2rem;
+        }
+
+        .demo-title {
+            font-size: 2.2rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary-color);
+        }
+
+        .demo-text {
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+
+        .demo-image {
+            flex: 1;
+            min-width: 300px;
+            padding: 2rem;
+            position: relative;
+        }
+
+        .demo-image img {
+            width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            transform: perspective(1000px) rotateY(-10deg);
+            transition: var(--transition);
+        }
+
+        .demo-image:hover img {
+            transform: perspective(1000px) rotateY(0deg);
+        }
+
+        /* How It Works */
+        .how-it-works {
+            padding: 5rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .steps {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .step {
+            flex: 1;
+            min-width: 250px;
+            text-align: center;
+            position: relative;
+            padding: 2rem 1.5rem;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: var(--transition);
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .step.animated {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .step:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .step-number {
+            width: 50px;
+            height: 50px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 0 auto 1.5rem;
+        }
+
+        .step-title {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+
+        /* Testimonials */
+        .testimonials {
+            background: linear-gradient(135deg, #EFF6FF, #DBEAFE);
+            padding: 5rem 2rem;
+        }
+
+        .testimonials-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .testimonial-card {
+            background: white;
+            border-radius: 10px;
+            padding: 2rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            position: relative;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .testimonial-card.animated {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .testimonial-card:before {
+            content: '"';
+            font-size: 5rem;
+            color: rgba(79, 70, 229, 0.1);
+            position: absolute;
+            top: 10px;
+            left: 20px;
+            line-height: 1;
+        }
+
+        .testimonial-text {
+            margin-bottom: 1.5rem;
+            font-style: italic;
+            position: relative;
+            z-index: 1;
+        }
+
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+        }
+
+        .author-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-right: 1rem;
+            object-fit: cover;
+        }
+
+        .author-info h4 {
+            font-weight: 600;
+            margin-bottom: 0.2rem;
+        }
+
+        .author-info p {
+            font-size: 0.9rem;
+            color: #64748B;
+        }
+
+        /* CTA Section */
+        .cta-section {
+            background: linear-gradient(135deg, var(--primary-color), #7C3AED);
+            color: white;
+            padding: 5rem 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-container {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+        }
+
+        .cta-title {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        .cta-text {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+            animation: fadeInUp 1s ease-out 0.3s forwards;
+            opacity: 0;
+        }
+
+        .cta-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .primary-button {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        .secondary-button {
+            background-color: transparent;
+            color: white;
+            border: 2px solid white;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 0.8rem 2rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: var(--transition);
+            animation: fadeInUp 1s ease-out 0.6s forwards;
+            opacity: 0;
+        }
+
+        .primary-button:hover {
+            background-color: #E67E22;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+        }
+
+        .secondary-button:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateY(-3px);
+        }
+
+        .cta-pattern {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.1;
+            background-image: url('https://www.transparenttextures.com/patterns/always-grey.png');
+            z-index: 1;
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--dark-color);
+            color: white;
+            padding: 3rem 2rem 2rem;
+            text-align: center;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .footer-logo {
+            width: 60px;
+            height: 60px;
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-links {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-link {
+            color: white;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .footer-link:hover {
+            color: var(--accent-color);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .social-link {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            transition: var(--transition);
+        }
+
+        .social-link:hover {
+            background-color: var(--accent-color);
+            transform: translateY(-3px);
+        }
+
+        .copyright {
+            font-size: 0.9rem;
+            opacity: 0.7;
+            margin-top: 1rem;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background-color: white;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            padding: 2rem;
+            position: relative;
+            transform: translateY(-50px);
+            transition: transform 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal.active .modal-content {
+            transform: translateY(0);
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #64748B;
+            transition: var(--transition);
+        }
+
+        .close-modal:hover {
+            color: var(--primary-color);
+        }
+
+        .modal-title {
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary-color);
+            text-align: center;
+        }
+
+        .modal-text {
+            margin-bottom: 1.5rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.2rem;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .demo-container {
+                flex-direction: column;
+            }
+
+            .demo-content, .demo-image {
+                padding: 1rem;
+            }
+
+            .demo-image img {
+                transform: none;
+            }
+
+            .cta-title {
+                font-size: 2rem;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .footer-links {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+
+        /* Animation Classes */
+        .delay-1 {
+            animation-delay: 0.2s !important;
+        }
+
+        .delay-2 {
+            animation-delay: 0.4s !important;
+        }
+
+        .delay-3 {
+            animation-delay: 0.6s !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Language Toggle -->
+    <div class="language-toggle">
+        <span class="en-text">EN</span>
+        <label class="toggle-switch">
+            <input type="checkbox" id="language-toggle">
+            <span class="slider"></span>
+        </label>
+        <span class="kh-text">ខ្មែរ</span>
+    </div>
+
+    <!-- Back to Top Button -->
+    <div class="back-to-top">
+        <i class="fas fa-arrow-up"></i>
+    </div>
+
+    <!-- Header -->
+    <header>
+        <div class="header-content">
+            <img src="https://cdn-icons-png.flaticon.com/512/5968/5968517.png" alt="Markdown to HTML Logo" class="logo">
+            <h1 class="en-text">Markdown to HTML Converter</h1>
+            <h1 class="kh-text" style="display: none;">កម្មវិធីបម្លែង Markdown ទៅ HTML</h1>
+            <p class="tagline en-text">Transform your Markdown documents into clean, responsive HTML with our powerful converter tool.</p>
+            <p class="tagline kh-text" style="display: none;">បម្លែងឯកសារ Markdown របស់អ្នកទៅជា HTML ដែលមានលក្ខណៈស្អាត និងឆ្លើយតបយ៉ាងល្អជាមួយនឹងឧបករណ៍បម្លែងដ៏មានឥទ្ធិពលរបស់យើង។</p>
+            <a href="#demo" class="cta-button en-text">Try It Now</a>
+            <a href="#demo" class="cta-button kh-text" style="display: none;">សាកល្បងឥឡូវនេះ</a>
+        </div>
+        <div class="header-wave"></div>
+    </header>
+
+    <!-- Features Section -->
+    <section class="features">
+        <h2 class="section-title en-text">Powerful Features</h2>
+        <h2 class="section-title kh-text" style="display: none;">លក្ខណៈពិសេសដ៏មានឥទ្ធិពល</h2>
+        
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <h3 class="feature-title en-text">Lightning Fast</h3>
+                <h3 class="feature-title kh-text" style="display: none;">លឿនដូចរន្ទះ</h3>
+                <p class="en-text">Convert your documents in milliseconds with our optimized processing engine.</p>
+                <p class="kh-text" style="display: none;">បម្លែងឯកសាររបស់អ្នកក្នុងរយៈពេលមិល្លីវិនាទីជាមួយនឹងម៉ាស៊ីនដំណើរការដែលបានធ្វើឱ្យប្រសើរឡើងរបស់យើង។</p>
+            </div>
+            
+            <div class="feature-card delay-1">
+                <div class="feature-icon">
+                    <i class="fas fa-code"></i>
+                </div>
+                <h3 class="feature-title en-text">Clean Output</h3>
+                <h3 class="feature-title kh-text" style="display: none;">លទ្ធផលស្អាត</h3>
+                <p class="en-text">Get beautifully formatted HTML code that's easy to read and maintain.</p>
+                <p class="kh-text" style="display: none;">ទទួលបានកូដ HTML ដែលមានទម្រង់ស្អាត ងាយស្រួលអាន និងថែទាំ។</p>
+            </div>
+            
+            <div class="feature-card delay-2">
+                <div class="feature-icon">
+                    <i class="fas fa-mobile-alt"></i>
+                </div>
+                <h3 class="feature-title en-text">Responsive Design</h3>
+                <h3 class="feature-title kh-text" style="display: none;">ការរចនាឆ្លើយតប</h3>
+                <p class="en-text">Automatically generates HTML that looks great on all devices.</p>
+                <p class="kh-text" style="display: none;">បង្កើត HTML ដោយស្វ័យប្រវត្តិដែលមើលទៅល្អនៅលើឧបករណ៍ទាំងអស់។</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Demo Section -->
+    <section class="demo" id="demo">
+        <div class="demo-container">
+            <div class="demo-content">
+                <h2 class="demo-title en-text">See It In Action</h2>
+                <h2 class="demo-title kh-text" style="display: none;">មើលវាកំពុងដំណើរការ</h2>
+                <p class="demo-text en-text">Our Markdown to HTML converter makes it incredibly easy to transform your documents. Just paste your Markdown content and get instant HTML output.</p>
+                <p class="demo-text kh-text" style="display: none;">កម្មវិធីបម្លែង Markdown ទៅ HTML របស់យើងធ្វើឱ្យវាងាយស្រួលយ៉ាងខ្លាំងក្នុងការបម្លែងឯកសាររបស់អ្នក។ គ្រាន់តែបិទភ្ជាប់មាតិកា Markdown របស់អ្នក ហើយទទួលបានលទ្ធផល HTML ភ្លាមៗ។</p>
+                <a href="#" class="cta-button en-text open-modal">Live Demo</a>
+                <a href="#" class="cta-button kh-text open-modal" style="display: none;">ការបង្ហាញផ្ទាល់</a>
+            </div>
+            <div class="demo-image">
+                <img src="https://miro.medium.com/v2/resize:fit:1400/1*_6MfwckxNfQTca9SiG8MdQ.png" alt="Markdown to HTML Conversion Demo">
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="how-it-works">
+        <h2 class="section-title en-text">How It Works</h2>
+        <h2 class="section-title kh-text" style="display: none;">វាដំណើរការយ៉ាងដូចម្តេច</h2>
+        
+        <div class="steps">
+            <div class="step">
+                <div class="step-number">1</div>
+                <h3 class="step-title en-text">Paste Markdown</h3>
+                <h3 class="step-title kh-text" style="display: none;">បិទភ្ជាប់ Markdown</h3>
+                <p class="en-text">Copy and paste your Markdown content into our editor.</p>
+                <p class="kh-text" style="display: none;">ចម្លង និងបិទភ្ជាប់មាតិកា Markdown របស់អ្នកទៅក្នុងកម្មវិធីកែសម្រួលរបស់យើង។</p>
+            </div>
+            
+            <div class="step delay-1">
+                <div class="step-number">2</div>
+                <h3 class="step-title en-text">Convert to HTML</h3>
+                <h3 class="step-title kh-text" style="display: none;">បម្លែងទៅ HTML</h3>
+                <p class="en-text">Click the convert button to transform your Markdown.</p>
+                <p class="kh-text" style="display: none;">ចុចប៊ូតុងបម្លែងដើម្បីបម្លែង Markdown របស់អ្នក។</p>
+            </div>
+            
+            <div class="step delay-2">
+                <div class="step-number">3</div>
+                <h3 class="step-title en-text">Copy or Download</h3>
+                <h3 class="step-title kh-text" style="display: none;">ចម្លង ឬទាញយក</h3>
+                <p class="en-text">Get your HTML code or download it as a file.</p>
+                <p class="kh-text" style="display: none;">ទទួលបានកូដ HTML របស់អ្នក ឬទាញយកវាជាឯកសារ។</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="testimonials">
+        <div class="testimonials-container">
+            <h2 class="section-title en-text">What Users Say</h2>
+            <h2 class="section-title kh-text" style="display: none;">អ្វីដែលអ្នកប្រើប្រាស់និយាយ</h2>
+            
+            <div class="testimonials-grid">
+                <div class="testimonial-card">
+                    <p class="testimonial-text en-text">This converter saved me hours of work. The HTML output is clean and perfectly formatted every time.</p>
+                    <p class="testimonial-text kh-text" style="display: none;">កម្មវិធីបម្លែងនេះបានសង្គ្រោះពេលវេលាធ្វើការរបស់ខ្ញុំរាប់ម៉ោង។ លទ្ធផល HTML គឺស្អាត និងមានទម្រង់ល្អឥតខ្ចោះរាល់ពេល។</p>
+                    <div class="testimonial-author">
+                        <img src="https://randomuser.me/api/portraits/women/43.jpg" alt="Sarah Johnson" class="author-avatar">
+                        <div class="author-info">
+                            <h4>Sarah Johnson</h4>
+                            <p class="en-text">Web Developer</p>
+                            <p class="kh-text" style="display: none;">អ្នកអភិវឌ្ឍន៍គេហទំព័រ</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="testimonial-card delay-1">
+                    <p class="testimonial-text en-text">I use this tool daily for my blog. It's incredibly reliable and produces excellent results.</p>
+                    <p class="testimonial-text kh-text" style="display: none;">ខ្ញុំប្រើឧបករណ៍នេះជារៀងរាល់ថ្ងៃសម្រាប់ប្លុករបស់ខ្ញុំ។ វាគឺគួរឱ្យទុកចិត្តយ៉ាងខ្លាំង និងផលិតលទ្ធផលដ៏ល្អ។</p>
+                    <div class="testimonial-author">
+                        <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Michael Chen" class="author-avatar">
+                        <div class="author-info">
+                            <h4>Michael Chen</h4>
+                            <p class="en-text">Content Creator</p>
+                            <p class="kh-text" style="display: none;">អ្នកបង្កើតមាតិកា</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="testimonial-card delay-2">
+                    <p class="testimonial-text en-text">The best Markdown converter I've found. The responsive output works perfectly on all devices.</p>
+                    <p class="testimonial-text kh-text" style="display: none;">កម្មវិធីបម្លែង Markdown ដ៏ល្អបំផុតដែលខ្ញុំបានរកឃើញ។ លទ្ធផលដែលឆ្លើយតបដំណើរការល្អឥតខ្ចោះនៅលើឧបករណ៍ទាំងអស់។</p>
+                    <div class="testimonial-author">
+                        <img src="https://randomuser.me/api/portraits/women/65.jpg" alt="Emma Rodriguez" class="author-avatar">
+                        <div class="author-info">
+                            <h4>Emma Rodriguez</h4>
+                            <p class="en-text">Technical Writer</p>
+                            <p class="kh-text" style="display: none;">អ្នកនិពន្ធបច្ចេកទេស</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="cta-pattern"></div>
+        <div class="cta-container">
+            <h2 class="cta-title en-text">Ready to Transform Your Markdown?</h2>
+            <h2 class="cta-title kh-text" style="display: none;">ត្រៀមខ្លួនដើម្បីបម្លែង Markdown របស់អ្នកហើយឬនៅ?</h2>
+            <p class="cta-text en-text">Join thousands of satisfied users who save time with our powerful converter.</p>
+            <p class="cta-text kh-text" style="display: none;">ចូលរួមជាមួយអ្នកប្រើប្រាស់រាប់ពាន់នាក់ដែលពេញចិត្តដែលបានសន្សំពេលវេលាជាមួយនឹងកម្មវិធីបម្លែងដ៏មានឥទ្ធិពលរបស់យើង។</p>
+            <div class="cta-buttons">
+                <a href="#" class="cta-button primary-button open-modal en-text">Get Started Now</a>
+                <a href="#" class="cta-button primary-button open-modal kh-text" style="display: none;">ចាប់ផ្តើមឥឡូវនេះ</a>
+                <a href="#features" class="cta-button secondary-button en-text">Learn More</a>
+                <a href="#features" class="cta-button secondary-button kh-text" style="display: none;">ស្វែងយល់បន្ថែម</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <img src="https://cdn-icons-png.flaticon.com/512/5968/5968517.png" alt="Markdown to HTML Logo" class="footer-logo">
+            
+            <div class="footer-links">
+                <a href="#" class="footer-link en-text">Home</a>
+                <a href="#" class="footer-link kh-text" style="display: none;">ទំព័រដើម</a>
+                <a href="#features" class="footer-link en-text">Features</a>
+                <a href="#features" class="footer-link kh-text" style="display: none;">លក្ខណៈពិសេស</a>
+                <a href="#demo" class="footer-link en-text">Demo</a>
+                <a href="#demo" class="footer-link kh-text" style="display: none;">ការបង្ហាញ</a>
+                <a href="#" class="footer-link en-text">Pricing</a>
+                <a href="#" class="footer-link kh-text" style="display: none;">តម្លៃ</a>
+                <a href="#" class="footer-link en-text">Contact</a>
+                <a href="#" class="footer-link kh-text" style="display: none;">ទំនាក់ទំនង</a>
+            </div>
+            
+            <div class="social-links">
+                <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="social-link"><i class="fab fa-github"></i></a>
+                <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+            </div>
+            
+            <p class="copyright en-text">2025 - All rights reserved. Provide by Mr. Phekdey PHORN</p>
+            <p class="copyright kh-text" style="display: none;">2025 - រក្សារ​សិទ្ធិ​គ្រប់​យ៉ាង ដោយលោក ផន ភក្ដី។</p>
+        </div>
+    </footer>
+
+    <!-- Modal -->
+    <div class="modal" id="demo-modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2 class="modal-title en-text">Markdown to HTML Converter</h2>
+            <h2 class="modal-title kh-text" style="display: none;">កម្មវិធីបម្លែង Markdown ទៅ HTML</h2>
+            
+            <div class="modal-text en-text">
+                <p>This would be the actual converter interface in a real implementation. Paste your Markdown on the left and see the HTML output on the right.</p>
+                <textarea placeholder="Paste your Markdown here..." style="width: 100%; min-height: 150px; margin: 1rem 0; padding: 0.5rem;"></textarea>
+                <button style="background: var(--primary-color); color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;">Convert</button>
+                <div style="margin-top: 1rem; padding: 1rem; background: #f5f5f5; border-radius: 4px;">
+                    <h3>HTML Output:</h3>
+                    <pre style="white-space: pre-wrap; background: white; padding: 1rem; border-radius: 4px; overflow-x: auto;"></pre>
+                </div>
+            </div>
+            
+            <div class="modal-text kh-text" style="display: none;">
+                <p>នេះនឹងជាចំណុចប្រទាក់កម្មវិធីបម្លែងពិតប្រាកដនៅក្នុងការអនុវត្តពិត។ បិទភ្ជាប់ Markdown របស់អ្នកនៅខាងឆ្វេង ហើយមើលលទ្ធផល HTML នៅខាងស្តាំ។</p>
+                <textarea placeholder="បិទភ្ជាប់ Markdown របស់អ្នកនៅទីនេះ..." style="width: 100%; min-height: 150px; margin: 1rem 0; padding: 0.5rem;"></textarea>
+                <button style="background: var(--primary-color); color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;">បម្លែង</button>
+                <div style="margin-top: 1rem; padding: 1rem; background: #f5f5f5; border-radius: 4px;">
+                    <h3>លទ្ធផល HTML:</h3>
+                    <pre style="white-space: pre-wrap; background: white; padding: 1rem; border-radius: 4px; overflow-x: auto;"></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Language Toggle
+        const languageToggle = document.getElementById('language-toggle');
+        const enElements = document.querySelectorAll('.en-text');
+        const khElements = document.querySelectorAll('.kh-text');
+
+        languageToggle.addEventListener('change', function() {
+            if (this.checked) {
+                // Switch to Khmer
+                enElements.forEach(el => el.style.display = 'none');
+                khElements.forEach(el => el.style.display = 'block');
+            } else {
+                // Switch to English
+                enElements.forEach(el => el.style.display = 'block');
+                khElements.forEach(el => el.style.display = 'none');
+            }
+        });
+
+        // Back to Top Button
+        const backToTop = document.querySelector('.back-to-top');
+
+        window.addEventListener('scroll', function() {
+            if (window.pageYOffset > 300) {
+                backToTop.classList.add('active');
+            } else {
+                backToTop.classList.remove('active');
+            }
+        });
+
+        backToTop.addEventListener('click', function(e) {
+            e.preventDefault();
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+
+        // Modal
+        const modal = document.getElementById('demo-modal');
+        const openModalButtons = document.querySelectorAll('.open-modal');
+        const closeModal = document.querySelector('.close-modal');
+
+        openModalButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            });
+        });
+
+        closeModal.addEventListener('click', function() {
+            modal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        });
+
+        window.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                modal.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
+        });
+
+        // Animate elements on scroll
+        const animateOnScroll = function() {
+            const elements = document.querySelectorAll('.feature-card, .step, .testimonial-card');
+            
+            elements.forEach(element => {
+                const elementPosition = element.getBoundingClientRect().top;
+                const screenPosition = window.innerHeight / 1.3;
+                
+                if (elementPosition < screenPosition) {
+                    element.classList.add('animated');
+                }
+            });
+        };
+
+        window.addEventListener('scroll', animateOnScroll);
+        window.addEventListener('load', animateOnScroll);
+    </script>
+</body>
+</html>
